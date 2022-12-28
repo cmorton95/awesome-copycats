@@ -20,12 +20,25 @@ theme.font                                      = "JetBrains Mono 9"
 theme.fg_normal                                 = "#DDDDFF"
 theme.fg_focus                                  = "#EA6F81"
 theme.fg_urgent                                 = "#CC9393"
+theme.fg_minimized                              = "#9B9BA8"
 theme.bg_normal                                 = "#1A1A1A"
 theme.bg_focus                                  = "#313131"
 theme.bg_urgent                                 = "#1A1A1A"
 theme.border_width                              = dpi(1)
 theme.border_normal                             = "#3F3F3F"
 theme.border_focus                              = "#7F7F7F"
+theme.border_marked                             = "#CC9393"
+theme.tasklist_bg_focus                         = "#1A1A1A"
+theme.titlebar_bg_focus                         = theme.bg_focus
+theme.titlebar_bg_normal                        = theme.bg_normal
+theme.titlebar_fg_focus                         = theme.fg_focus
+theme.menu_height                               = dpi(16)
+theme.menu_width                                = dpi(140)
+theme.menu_submenu_icon                         = theme.dir .. "/icons/submenu.png"
+theme.bg_urgent                                 = "#1A1A1A"
+theme.border_width                              = dpi(1)
+theme.border_normal                             = "#3F3F3F"
+theme.border_focus                              = "#5F5F5F"
 theme.border_marked                             = "#CC9393"
 theme.tasklist_bg_focus                         = "#1A1A1A"
 theme.titlebar_bg_focus                         = theme.bg_focus
@@ -67,7 +80,7 @@ theme.widget_mail                               = theme.dir .. "/icons/mail.png"
 theme.widget_mail_on                            = theme.dir .. "/icons/mail_on.png"
 theme.tasklist_plain_task_name                  = true
 theme.tasklist_disable_icon                     = true
-theme.useless_gap                               = dpi(0)
+theme.useless_gap                               = dpi(2)
 theme.titlebar_close_button_focus               = theme.dir .. "/icons/titlebar/close_focus.png"
 theme.titlebar_close_button_normal              = theme.dir .. "/icons/titlebar/close_normal.png"
 theme.titlebar_ontop_button_focus_active        = theme.dir .. "/icons/titlebar/ontop_focus_active.png"
@@ -75,7 +88,7 @@ theme.titlebar_ontop_button_normal_active       = theme.dir .. "/icons/titlebar/
 theme.titlebar_ontop_button_focus_inactive      = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
 theme.titlebar_ontop_button_normal_inactive     = theme.dir .. "/icons/titlebar/ontop_normal_inactive.png"
 theme.titlebar_minimize_button_normal           = theme.dir .. "/icons/titlebar/ontop_normal_inactive.png"
-theme.titlebar_minimize_button_focus           = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
+theme.titlebar_minimize_button_focus            = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
 theme.titlebar_sticky_button_focus_active       = theme.dir .. "/icons/titlebar/sticky_focus_active.png"
 theme.titlebar_sticky_button_normal_active      = theme.dir .. "/icons/titlebar/sticky_normal_active.png"
 theme.titlebar_sticky_button_focus_inactive     = theme.dir .. "/icons/titlebar/sticky_focus_inactive.png"
@@ -116,7 +129,7 @@ local clock = awful.widget.watch(
 theme.cal = lain.widget.cal({
     attach_to = { clock },
     notification_preset = {
-        font = "Terminus 10",
+        font = "JetBrains Mono 10",
         fg   = theme.fg_normal,
         bg   = theme.bg_normal
     }
@@ -316,10 +329,11 @@ function theme.at_screen_connect(s)
     s.mytasklist = awful.widget.tasklist({
             screen = s, 
             style = { 
+                fg_minimize = theme.fg_minimized,
                 shape = gears.shape.rectangle, 
                 shape_border_width = 0, 
-                shape_border_color_focus = theme.fg_focus,
-                shape_border_width_focus = 1 
+                shape_border_color_focus = theme.bg_focus,
+                shape_border_width_focus = 1
             }
         }, 
         awful.widget.tasklist.filter.currenttags, awful.util.tasklist_buttons)
@@ -341,8 +355,9 @@ function theme.at_screen_connect(s)
             spr,
             s.mypromptbox,
             spr,
+            s.mytasklist
         },
-        s.mytasklist, -- Middle widget
+        spr, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
             systray,

@@ -100,14 +100,14 @@ local themes = {
 local chosen_theme = themes[7]
 local modkey       = "Mod4"
 local altkey       = "Mod1"
-local terminal     = "konsole"
+local terminal     = "yakuake"
 local vi_focus     = false -- vi-like client focus https://github.com/lcpz/awesome-copycats/issues/275
 local cycle_prev   = true  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
 local editor       = os.getenv("EDITOR") or "nvim"
 local browser      = "vivaldi-snapshot"
 
 awful.util.terminal = terminal
-awful.util.tagnames = { "Desktop" }
+awful.util.tagnames = { "1" }
 awful.layout.layouts = {
     -- awful.layout.suit.floating,
     awful.layout.suit.tile,
@@ -158,11 +158,7 @@ awful.util.taglist_buttons = mytable.join(
 
 awful.util.tasklist_buttons = mytable.join(
      awful.button({ }, 1, function(c)
-         if c == client.focus then
-             c.minimized = true
-         else
-             c:emit_signal("request::activate", "tasklist", { raise = true })
-         end
+         c.minimized = not c.minimized
      end),
      awful.button({ }, 3, function()
          awful.menu.client_list({ theme = { width = 250 } })
@@ -830,3 +826,4 @@ awful.spawn.single_instance("yakuake", awful.rules.rules)
 awful.spawn.once("/etc/ricing/noisetorch.sh", awful.rules.rules)
 awful.spawn.once("/etc/ricing/obs.sh", awful.rules.rules)
 awful.spawn.once("/etc/ricing/rclone.sh", awful.rules.rules)
+awful.spawn.easy_async("/etc/ricing/clipfix.sh", awful.rules.rules)
