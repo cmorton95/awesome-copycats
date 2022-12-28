@@ -16,8 +16,7 @@ local my_table = awful.util.table or gears.table -- 4.{0,1} compatibility
 
 local theme                                     = {}
 theme.dir                                       = os.getenv("HOME") .. "/.config/awesome/themes/powerarrow-dark"
-theme.wallpaper                                 = theme.dir .. "/wall.png"
-theme.font                                      = "Terminus 9"
+theme.font                                      = "JetBrains Mono 9"
 theme.fg_normal                                 = "#DDDDFF"
 theme.fg_focus                                  = "#EA6F81"
 theme.fg_urgent                                 = "#CC9393"
@@ -75,6 +74,8 @@ theme.titlebar_ontop_button_focus_active        = theme.dir .. "/icons/titlebar/
 theme.titlebar_ontop_button_normal_active       = theme.dir .. "/icons/titlebar/ontop_normal_active.png"
 theme.titlebar_ontop_button_focus_inactive      = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
 theme.titlebar_ontop_button_normal_inactive     = theme.dir .. "/icons/titlebar/ontop_normal_inactive.png"
+theme.titlebar_minimize_button_normal           = theme.dir .. "/icons/titlebar/ontop_normal_inactive.png"
+theme.titlebar_minimize_button_focus           = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
 theme.titlebar_sticky_button_focus_active       = theme.dir .. "/icons/titlebar/sticky_focus_active.png"
 theme.titlebar_sticky_button_normal_active      = theme.dir .. "/icons/titlebar/sticky_normal_active.png"
 theme.titlebar_sticky_button_focus_inactive     = theme.dir .. "/icons/titlebar/sticky_focus_inactive.png"
@@ -87,6 +88,15 @@ theme.titlebar_maximized_button_focus_active    = theme.dir .. "/icons/titlebar/
 theme.titlebar_maximized_button_normal_active   = theme.dir .. "/icons/titlebar/maximized_normal_active.png"
 theme.titlebar_maximized_button_focus_inactive  = theme.dir .. "/icons/titlebar/maximized_focus_inactive.png"
 theme.titlebar_maximized_button_normal_inactive = theme.dir .. "/icons/titlebar/maximized_normal_inactive.png"
+
+
+theme.wallpaper = function(s)
+    if s.index == 1 then
+        return theme.dir .. "/wall.png"
+    elseif s.index == 2 then
+        return theme.dir .. "/wall2.png"
+    end
+end
 
 local markup = lain.util.markup
 local separators = lain.util.separators
@@ -282,7 +292,11 @@ function theme.at_screen_connect(s)
     gears.wallpaper.maximized(wallpaper, s, true)
 
     -- Tags
-    awful.tag(awful.util.tagnames, s, awful.layout.layouts[1])
+    if s.index == 1 then
+        awful.tag(awful.util.tagnames, s, awful.layout.layouts[1])
+    elseif s.index == 2 then
+        awful.tag(awful.util.tagnames, s, awful.layout.layouts[2])
+    end
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -299,52 +313,66 @@ function theme.at_screen_connect(s)
     s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, awful.util.taglist_buttons)
 
     -- Create a tasklist widget
-    s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, awful.util.tasklist_buttons)
+    s.mytasklist = awful.widget.tasklist({
+            screen = s, 
+            style = { 
+                shape = gears.shape.rectangle, 
+                shape_border_width = 0, 
+                shape_border_color_focus = theme.fg_focus,
+                shape_border_width_focus = 1 
+            }
+        }, 
+        awful.widget.tasklist.filter.currenttags, awful.util.tasklist_buttons)
 
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(18), bg = theme.bg_normal, fg = theme.fg_normal })
-
+    
+    local systray = wibox.widget.systray()
+    systray.set_base_size(14)
+    
     -- Add widgets to the wibox
     s.mywibox:setup {
+        expand = "none",
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
             --spr,
             s.mytaglist,
+            spr,
             s.mypromptbox,
             spr,
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            wibox.widget.systray(),
-            keyboardlayout,
+            systray,
+            --keyboardlayout,
             spr,
             arrl_ld,
-            wibox.container.background(mpdicon, theme.bg_focus),
-            wibox.container.background(theme.mpd.widget, theme.bg_focus),
-            arrl_dl,
-            volicon,
-            theme.volume.widget,
-            arrl_ld,
-            wibox.container.background(mailicon, theme.bg_focus),
+            --wibox.container.background(mpdicon, theme.bg_focus),
+            --wibox.container.background(theme.mpd.widget, theme.bg_focus),
+            --arrl_dl,
+            --volicon,
+            --theme.volume.widget,
+            --arrl_ld,
+            --wibox.container.background(mailicon, theme.bg_focus),
             --wibox.container.background(theme.mail.widget, theme.bg_focus),
-            arrl_dl,
-            memicon,
-            mem.widget,
-            arrl_ld,
+            --arrl_dl,
+            --memicon,
+            --mem.widget,
+            --arrl_ld,
             wibox.container.background(cpuicon, theme.bg_focus),
             wibox.container.background(cpu.widget, theme.bg_focus),
-            arrl_dl,
-            tempicon,
-            temp.widget,
-            arrl_ld,
-            wibox.container.background(fsicon, theme.bg_focus),
+            --arrl_dl,
+            --tempicon,
+            --temp.widget,
+            --arrl_ld,
+            --wibox.container.background(fsicon, theme.bg_focus),
             --wibox.container.background(theme.fs.widget, theme.bg_focus),
-            arrl_dl,
-            baticon,
-            bat.widget,
-            arrl_ld,
+            --arrl_dl,
+            --baticon,
+            --bat.widget,
+            --arrl_ld,
             wibox.container.background(neticon, theme.bg_focus),
             wibox.container.background(net.widget, theme.bg_focus),
             arrl_dl,
