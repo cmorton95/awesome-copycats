@@ -10,6 +10,7 @@ local lain  = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local dpi   = require("beautiful.xresources").apply_dpi
+local utils = require("utils")
 
 local os = os
 local my_table = awful.util.table or gears.table -- 4.{0,1} compatibility
@@ -68,7 +69,7 @@ theme.widget_mail                               = theme.dir .. "/icons/mail.png"
 theme.widget_mail_on                            = theme.dir .. "/icons/mail_on.png"
 theme.tasklist_plain_task_name                  = true
 theme.tasklist_disable_icon                     = true
-theme.useless_gap                               = dpi(2)
+theme.useless_gap                               = dpi(0)
 theme.systray_icon_spacing                      = dpi(2)
 theme.titlebar_close_button_focus               = theme.dir .. "/icons/titlebar/close_focus.png"
 theme.titlebar_close_button_normal              = theme.dir .. "/icons/titlebar/close_normal.png"
@@ -202,6 +203,35 @@ function theme.at_screen_connect(s)
         buttons = awful.util.taglist_buttons
     })
 
+    local callback = function(se, c, index, objects) --luacheck: no unused
+
+        local textbox = se:get_children_by_id('textfield')[1]
+
+        local index = utils.lastIndexOf(c.class, '-')
+        
+        local text = c.class
+        if index ~= -1 then
+            text = string.sub(c.class, 1, index-1)
+        end
+
+        text = text .. " (" .. c.name .. ")"
+
+        if textbox:set_markup_silently(text) then
+
+            if c ~= client.focus then
+                textbox.opacity = 0.7
+            else
+                textbox.opacity = 1
+            end
+            if c.minimized then
+                textbox.font = 'JetBrains Mono, Italic 9'
+                textbox.opacity = 0.4
+            else
+                textbox.font = 'JetBrains Mono 9'
+            end
+        end
+    end
+
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist({
             screen = s, 
@@ -231,7 +261,7 @@ function theme.at_screen_connect(s)
                         {
                             id = 'textfield',
                             widget = wibox.widget.textbox,
-                            forced_width = dpi(120)
+                            forced_width = dpi(180)
                         },
                         layout = wibox.layout.fixed.horizontal
                     },
@@ -242,26 +272,8 @@ function theme.at_screen_connect(s)
                 },
                 id = 'background_role',
                 widget = wibox.container.background,
-                create_callback = function(se, c, index, objects) --luacheck: no unused
-                    local textbox = se:get_children_by_id('textfield')[1]
-                    textbox:set_markup_silently(c.class)
-                end,
-                update_callback = function(se, c, index, objects) --luacheck: no unused
-                    local textbox = se:get_children_by_id('textfield')[1]
-                    if textbox:set_markup_silently(c.class) then
-                        if c ~= client.focus then
-                            textbox.opacity = 0.6
-                        else
-                            textbox.opacity = 1
-                        end
-                        if c.minimized then
-                            textbox.font = 'JetBrains Mono, Italic 9'
-                            textbox.opacity = 0.4
-                        else
-                            textbox.font = 'JetBrains Mono 9'
-                        end
-                    end
-                end,
+                create_callback = callback,
+                update_callback = callback,
             },
             
 

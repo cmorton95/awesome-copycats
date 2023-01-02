@@ -68,7 +68,23 @@ local function run_once(cmd_arr)
     end
 end
 
-run_once({ "urxvtd" }) -- comma-separated entries
+local entries = { 
+    "urxvtd", 
+    "/etc/ricing/noisetorch.sh", 
+    "/etc/ricing/rclone.sh", 
+    "/etc/ricing/openrgb.sh", 
+    "/etc/ricing/clipfix.sh", 
+    "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+}
+
+run_once(entries) -- comma-separated entries
+
+awful.spawn.single_instance("parcellite", awful.rules.rules)
+awful.spawn.single_instance("discord", awful.rules.rules)
+awful.spawn.single_instance("steam", awful.rules.rules)
+awful.spawn.single_instance("vivalid-snapshot", awful.rules.rules)
+awful.spawn.single_instance("blueman-applet", awful.rules.rules)
+awful.spawn.single_instance("yakuake", awful.rules.rules)
 
 -- }}}
 
@@ -95,6 +111,7 @@ local vi_focus     = false -- vi-like client focus https://github.com/lcpz/aweso
 local cycle_prev   = true  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
 local editor       = os.getenv("EDITOR") or "nvim"
 local browser      = "vivaldi-snapshot"
+local scrlocker    = "slock"
 
 awful.util.terminal = terminal
 awful.util.tagnames = { "1" }
@@ -129,6 +146,10 @@ awful.util.taglist_buttons = mytable.join(
 awful.util.tasklist_buttons = mytable.join(
      awful.button({ }, 1, function(c)
          c.minimized = not c.minimized
+         if not c.minimized then
+            client.focus = c
+            c:raise()
+         end
      end),
      awful.button({ }, 3, function()
          awful.menu.client_list({ theme = { width = 250 } })
@@ -243,20 +264,6 @@ globalkeys = mytable.join(
     awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
 
-    -- Tag browsing
-    awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
-              {description = "view previous", group = "tag"}),
-    awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
-              {description = "view next", group = "tag"}),
-    awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
-              {description = "go back", group = "tag"}),
-
-    -- Non-empty tag browsing
-    awful.key({ altkey }, "Left", function () lain.util.tag_view_nonempty(-1) end,
-              {description = "view  previous nonempty", group = "tag"}),
-    awful.key({ altkey }, "Right", function () lain.util.tag_view_nonempty(1) end,
-              {description = "view  previous nonempty", group = "tag"}),
-
     -- Menu
     awful.key({ modkey,           }, "w", function () awful.util.mymainmenu:show() end,
               {description = "show main menu", group = "awesome"}),
@@ -367,7 +374,7 @@ clientkeys = mytable.join(
             c:raise()
         end,
         {description = "toggle fullscreen", group = "client"}),
-    awful.key({ modkey,  }, "c",      function (c) c:kill()                         end,
+    awful.key({ modkey,           }, "x",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,
               {description = "move to master", group = "client"}),
@@ -375,9 +382,9 @@ clientkeys = mytable.join(
               {description = "move to screen", group = "client"}),
     awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end,
               {description = "toggle keep on top", group = "client"}),
-    awful.key({ modkey, }, "z",  awful.client.floating.toggle,
+    awful.key({ modkey,           }, "z",  awful.client.floating.toggle,
               {description = "toggle floating", group = "client"}),
-    awful.key({ modkey,           }, "x",
+    awful.key({ modkey,           }, "Escape",
         function (c)
             -- The client currently has the input focus, so it cannot be
             -- minimized, since minimized clients can't have the focus.
@@ -389,19 +396,7 @@ clientkeys = mytable.join(
             c.maximized = not c.maximized
             c:raise()
         end ,
-        {description = "(un)maximize", group = "client"}),
-    awful.key({ modkey, "Control" }, "m",
-        function (c)
-            c.maximized_vertical = not c.maximized_vertical
-            c:raise()
-        end ,
-        {description = "(un)maximize vertically", group = "client"}),
-    awful.key({ modkey, "Shift"   }, "m",
-        function (c)
-            c.maximized_horizontal = not c.maximized_horizontal
-            c:raise()
-        end ,
-        {description = "(un)maximize horizontally", group = "client"})
+        {description = "(un)maximize", group = "client"})
 )
 
 clientbuttons = mytable.join(
@@ -414,7 +409,7 @@ clientbuttons = mytable.join(
     end),
     awful.button({ modkey }, 2, function (c)
         c:emit_signal("request::activate", "mouse_click", {raise = true})
-        c.minimized = true
+        c:kill()
     end),
     awful.button({ modkey }, 3, function (c)
         c:emit_signal("request::activate", "mouse_click", {raise = true})
@@ -553,16 +548,3 @@ client.connect_signal("focus", function(c) c.border_color = beautiful.border_foc
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 
 -- }}}
-
---awful.spawn.single_instance("parcellite", awful.rules.rules)
---awful.spawn.single_instance("discord", awful.rules.rules)
---awful.spawn.single_instance("steam", awful.rules.rules)
---awful.spawn.single_instance("vivalid-snapshot", awful.rules.rules)
---awful.spawn.single_instance("blueman-applet", awful.rules.rules)
---awful.spawn.single_instance("yakuake", awful.rules.rules)
---
---awful.spawn.once("/etc/ricing/noisetorch.sh", awful.rules.rules)
---awful.spawn.once("/etc/ricing/rclone.sh", awful.rules.rules)
---awful.spawn.easy_async("/etc/ricing/openrgb.sh", awful.rules.rules)
---awful.spawn.easy_async("/etc/ricing/clipfix.sh", awful.rules.rules)
---awful.spawn.easy_async("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1", awful.rules.rules)
