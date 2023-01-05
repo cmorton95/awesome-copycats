@@ -10,7 +10,6 @@ local lain  = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local dpi   = require("beautiful.xresources").apply_dpi
-local utils = require("utils")
 
 local os = os
 local my_table = awful.util.table or gears.table -- 4.{0,1} compatibility
@@ -19,7 +18,7 @@ local theme                                     = {}
 theme.dir                                       = os.getenv("HOME") .. "/.config/awesome/themes/powerarrow-dark"
 theme.font                                      = "JetBrains Mono 9"
 theme.fg_normal                                 = "#DDDDFF"
-theme.fg_focus                                  = "#EA6F81"
+theme.fg_focus                                  = "#77DDDD"
 theme.fg_urgent                                 = "#CC9393"
 theme.fg_minimized                              = "#9B9BA8"
 theme.bg_normal                                 = "#1A1A1A"
@@ -36,8 +35,6 @@ theme.titlebar_fg_focus                         = theme.fg_focus
 theme.menu_height                               = dpi(16)
 theme.menu_width                                = dpi(140)
 theme.menu_submenu_icon                         = theme.dir .. "/icons/submenu.png"
-theme.taglist_squares_sel                       = theme.dir .. "/icons/square_sel.png"
-theme.taglist_squares_unsel                     = theme.dir .. "/icons/square_unsel.png"
 theme.layout_tile                               = theme.dir .. "/icons/tile.png"
 theme.layout_tileleft                           = theme.dir .. "/icons/tileleft.png"
 theme.layout_tilebottom                         = theme.dir .. "/icons/tilebottom.png"
@@ -69,7 +66,7 @@ theme.widget_mail                               = theme.dir .. "/icons/mail.png"
 theme.widget_mail_on                            = theme.dir .. "/icons/mail_on.png"
 theme.tasklist_plain_task_name                  = true
 theme.tasklist_disable_icon                     = true
-theme.useless_gap                               = dpi(0)
+theme.useless_gap                               = dpi(3)
 theme.systray_icon_spacing                      = dpi(2)
 theme.titlebar_close_button_focus               = theme.dir .. "/icons/titlebar/close_focus.png"
 theme.titlebar_close_button_normal              = theme.dir .. "/icons/titlebar/close_normal.png"
@@ -91,13 +88,40 @@ theme.titlebar_maximized_button_focus_active    = theme.dir .. "/icons/titlebar/
 theme.titlebar_maximized_button_normal_active   = theme.dir .. "/icons/titlebar/maximized_normal_active.png"
 theme.titlebar_maximized_button_focus_inactive  = theme.dir .. "/icons/titlebar/maximized_focus_inactive.png"
 theme.titlebar_maximized_button_normal_inactive = theme.dir .. "/icons/titlebar/maximized_normal_inactive.png"
+theme.notification_width                        = dpi(400)
+theme.notification_max_width                    = dpi(400)
+theme.notification_height                       = dpi(145)
+theme.notification_max_height                   = dpi(145)
 
 
 theme.wallpaper = function(s)
-    if s.index == 1 then
+    local wa = s.workarea
+    local isHorizontal = wa.width >= wa.height
+    if isHorizontal then
         return theme.dir .. "/wall.png"
-    elseif s.index == 2 then
+    else
         return theme.dir .. "/wall2.png"
+    end
+end
+
+local create_tags = function(s)
+    local wa = s.workarea
+    local isHorizontal = wa.width >= wa.height
+    if isHorizontal then
+        awful.tag.add("Desktop", {
+            screen = s,
+            layout = awful.layout.suit.tile.bottom,
+            master_count = 0,
+            selected = true
+
+        })
+    else
+        awful.tag.add("Desktop", {
+            screen = s,
+            layout = awful.layout.suit.tile,
+            master_count = 0,
+            selected = true
+        })
     end
 end
 
@@ -152,19 +176,11 @@ local arrr_dl = separators.arrow_right(theme.bg_focus, "alpha")
 local arrr_ld = separators.arrow_right("alpha", theme.bg_focus)
 
 function theme.at_screen_connect(s)
-    -- If wallpaper is a function, call it with the screen
-    local wallpaper = theme.wallpaper
-    if type(wallpaper) == "function" then
-        wallpaper = wallpaper(s)
-    end
-    gears.wallpaper.maximized(wallpaper, s, true)
+
+    gears.wallpaper.maximized(theme.wallpaper(s), s, true)
 
     -- Tags
-    if s.index == 1 then
-        awful.tag(awful.util.tagnames, s, awful.layout.layouts[1])
-    elseif s.index == 2 then
-        awful.tag(awful.util.tagnames, s, awful.layout.layouts[2])
-    end
+    create_tags(s)
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -194,7 +210,7 @@ function theme.at_screen_connect(s)
                     layout = wibox.layout.fixed.horizontal,
                 },
                 left = dpi(12),
-                right = dpi(12),
+                right = dpi(10),
                 widget = wibox.container.margin
             },
             id = 'background_role',
@@ -207,83 +223,79 @@ function theme.at_screen_connect(s)
 
         local textbox = se:get_children_by_id('textfield')[1]
 
-        local index = utils.lastIndexOf(c.class, '-')
+        local index = string.find(c.class, "-[^-]*$")
         
         local text = c.class
-        if index ~= -1 then
+        if index ~= nil then
             text = string.sub(c.class, 1, index-1)
         end
 
-        text = text .. " (" .. c.name .. ")"
+        text = text:gsub("^%l", string.upper) .. " (" .. c.name .. ")"
 
-        if textbox:set_markup_silently(text) then
-
-            if c ~= client.focus then
-                textbox.opacity = 0.7
-            else
-                textbox.opacity = 1
-            end
-            if c.minimized then
-                textbox.font = 'JetBrains Mono, Italic 9'
-                textbox.opacity = 0.4
-            else
-                textbox.font = 'JetBrains Mono 9'
-            end
+        if c == client.focus then
+            text = markup(theme.fg_focus, text)
+        elseif c.minimized then
+            text = markup(theme.fg_minimized, text)
         end
+
+        textbox:set_markup_silently(text)
     end
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist({
-            screen = s, 
-            filter = awful.widget.tasklist.filter.currenttags,
-            buttons = awful.util.tasklist_buttons,
-            style = { 
-                fg_minimize = theme.fg_minimized,
-                shape = gears.shape.rectangle
-            },
-            layout   = {
-                spacing = dpi(4),
-                spacing_widget = {
-                    {
-                        forced_width = 2,
-                        shape        = gears.shape.circle,
-                        widget       = wibox.widget.separator
-                    },
-                    valign = 'center',
-                    halign = 'center',
-                    widget = wibox.container.place,
+        screen = s, 
+        filter = awful.widget.tasklist.filter.currenttags,
+        buttons = awful.util.tasklist_buttons,
+        style = { 
+            shape = gears.shape.powerline,
+            bg_normal = theme.bg_focus,
+            bg_minimize = theme.bg_focus,
+            bg_focus = theme.bg_focus,
+            bg_urgent = theme.bg_focus
+        },
+        layout = {
+            spacing = dpi(-6),
+            spacing_widget = {
+                {
+                    forced_width = 0,
+                    shape        = gears.shape.powerline,
+                    widget       = wibox.widget.separator
                 },
-                layout  = wibox.layout.flex.horizontal
+                valign = 'center',
+                halign = 'center',
+                widget = wibox.container.place,
             },
-            widget_template = {
+            layout  = wibox.layout.flex.horizontal
+        },
+        widget_template = {
+            {
                 {
                     {
-                        {
-                            id = 'textfield',
-                            widget = wibox.widget.textbox,
-                            forced_width = dpi(180)
-                        },
-                        layout = wibox.layout.fixed.horizontal
+                        id = 'textfield',
+                        widget = wibox.widget.textbox,
+                        forced_width = dpi(180)
                     },
-                    left = 10,
-                    right = 10,
-                    id = 'text_margin_role',
-                    widget = wibox.container.margin
+                    layout = wibox.layout.fixed.horizontal
                 },
-                id = 'background_role',
-                widget = wibox.container.background,
-                create_callback = callback,
-                update_callback = callback,
+                left = dpi(12),
+                right = dpi(6),
+                id = 'text_margin_role',
+                widget = wibox.container.margin
             },
-            
+            id = 'background_role',
+            widget = wibox.container.background,
+            create_callback = callback,
+            update_callback = callback,
+        },
+        
 
-        })
+    })
 
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(18), bg = theme.bg_normal, fg = theme.fg_normal })
     
     local systray = wibox.widget.systray()
-    systray.set_base_size(14)
+    systray.set_base_size(dpi(15))
     
     -- Add widgets to the wibox
     s.mywibox:setup {
@@ -292,12 +304,9 @@ function theme.at_screen_connect(s)
         {
             layout = wibox.layout.fixed.horizontal,
             s.mytaglist,
-            spr,
-            s.mypromptbox,
-            spr,
             s.mytasklist
         },
-        nil,
+        s.mypromptbox,
         {
             layout = wibox.layout.fixed.horizontal,
             systray,

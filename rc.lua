@@ -59,35 +59,6 @@ end
 
 -- }}}
 
--- {{{ Autostart windowless processes
-
--- This function will run once every time Awesome is started
-local function run_once(cmd_arr)
-    for _, cmd in ipairs(cmd_arr) do
-        awful.spawn.with_shell(string.format("pgrep -u $USER -fx '%s' > /dev/null || (%s)", cmd, cmd))
-    end
-end
-
-local entries = { 
-    "urxvtd", 
-    "/etc/ricing/noisetorch.sh", 
-    "/etc/ricing/rclone.sh", 
-    "/etc/ricing/openrgb.sh", 
-    "/etc/ricing/clipfix.sh", 
-    "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-}
-
-run_once(entries) -- comma-separated entries
-
-awful.spawn.single_instance("parcellite", awful.rules.rules)
-awful.spawn.single_instance("discord", awful.rules.rules)
-awful.spawn.single_instance("steam", awful.rules.rules)
-awful.spawn.single_instance("vivalid-snapshot", awful.rules.rules)
-awful.spawn.single_instance("blueman-applet", awful.rules.rules)
-awful.spawn.single_instance("yakuake", awful.rules.rules)
-
--- }}}
-
 -- {{{ Variable definitions
 
 local themes = {
@@ -108,7 +79,7 @@ local modkey       = "Mod4"
 local altkey       = "Mod1"
 local terminal     = "yakuake"
 local vi_focus     = false -- vi-like client focus https://github.com/lcpz/awesome-copycats/issues/275
-local cycle_prev   = true  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
+local cycle_prev   = false  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
 local editor       = os.getenv("EDITOR") or "nvim"
 local browser      = "vivaldi-snapshot"
 local scrlocker    = "slock"
@@ -119,16 +90,6 @@ awful.layout.layouts = {
     awful.layout.suit.tile,
     awful.layout.suit.tile.bottom
 }
-
-lain.layout.termfair.nmaster           = 3
-lain.layout.termfair.ncol              = 1
-lain.layout.termfair.center.nmaster    = 3
-lain.layout.termfair.center.ncol       = 1
-lain.layout.cascade.tile.offset_x      = 2
-lain.layout.cascade.tile.offset_y      = 32
-lain.layout.cascade.tile.extra_padding = 5
-lain.layout.cascade.tile.nmaster       = 5
-lain.layout.cascade.tile.ncol          = 2
 
 awful.util.taglist_buttons = mytable.join(
     awful.button({ }, 1, function(t) t:view_only() end),
@@ -202,9 +163,6 @@ awful.util.mymainmenu.wibox:connect_signal("mouse::leave", function()
 end)
 
 
--- Set the Menubar terminal for applications that require it
---menubar.utils.terminal = terminal
-
 -- }}}
 
 -- {{{ Screen
@@ -219,18 +177,6 @@ screen.connect_signal("property::geometry", function(s)
             wallpaper = wallpaper(s)
         end
         gears.wallpaper.maximized(wallpaper, s, true)
-    end
-end)
-
--- No borders when rearranging only 1 non-floating or maximized client
-screen.connect_signal("arrange", function (s)
-    local only_one = #s.tiled_clients == 1
-    for _, c in pairs(s.clients) do
-        if only_one and not c.floating or c.maximized or c.fullscreen then
-            c.border_width = 0
-        else
-            c.border_width = beautiful.border_width
-        end
     end
 end)
 
@@ -252,16 +198,12 @@ root.buttons(mytable.join(
 -- {{{ Key bindings
 
 globalkeys = mytable.join(
-    -- Destroy all notifications
-    awful.key({ "Control",           }, "space", function() naughty.destroy_all_notifications() end,
-              {description = "destroy all notifications", group = "hotkeys"}),
-
     -- X screen locker
     awful.key({ modkey,           }, "l", function () os.execute(scrlocker) end,
               {description = "lock screen", group = "hotkeys"}),
 
     -- Show help
-    awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
+    awful.key({ modkey,           }, "s", hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
 
     -- Menu
@@ -306,8 +248,6 @@ globalkeys = mytable.join(
               {description = "delete tag", group = "tag"}),
 
     -- Standard program
-    awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
-              {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit,
@@ -354,14 +294,18 @@ globalkeys = mytable.join(
 
     -- Prompt
     awful.key({ modkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
-              {description = "run prompt", group = "launcher"}),
+            {description = "run prompt", group = "launcher"}),
 
-    awful.key({"Control", "Shift"}, "4", 
-            function()
-                awful.spawn([[bash -c '
-                    spectacle -bcr
-                ']], function(stdout, stderr, reason, exit_code) end)
-            end,
+    awful.key({ modkey }, "space", function () awful.spawn("rofi -show combi -show-icons") end,
+            {description = "rofi prompt", group = "launcher"}),
+
+    awful.key({ modkey, "Shift" }, "s", function() awful.spawn("shutdown -P 0") end,
+            {description = "shutdown"}),
+
+    awful.key({ modkey, "Shift" }, "r", function() awful.spawn("shutdown -r 0") end,
+            {description = "reboot"}),
+
+    awful.key({"Control", "Shift"}, "4", function() awful.spawn("spectacle -bcr") end,
             {description = "spectacle region capture", group = "custom"})
 )
 
@@ -428,49 +372,61 @@ root.keys(globalkeys)
 awful.rules.rules = {
     -- All clients will match this rule.
     { rule = { },
-      properties = { border_width = beautiful.border_width,
-                     border_color = beautiful.border_normal,
-                     callback = awful.client.setslave,
-                     focus = awful.client.focus.filter,
-                     raise = true,
-                     keys = clientkeys,
-                     buttons = clientbuttons,
-                     screen = awful.screen.preferred,
-                     placement = awful.placement.no_overlap+awful.placement.no_offscreen,
-                     size_hints_honor = false
-     }
-    },
+    properties = { 
+        border_width = beautiful.border_width,
+        border_color = beautiful.border_normal,
+        callback = awful.client.setslave,
+        focus = awful.client.focus.filter,
+        raise = true,
+        keys = clientkeys,
+        buttons = clientbuttons,
+        screen = awful.screen.preferred,
+        placement = awful.placement.no_overlap+awful.placement.no_offscreen,
+        size_hints_honor = true
+    }},
 
     -- Floating clients.
     { rule_any = {
         instance = {
-          "DTA",  -- Firefox addon DownThemAll.
-          "copyq",  -- Includes session name in class.
-          "pinentry",
+            "DTA",  -- Firefox addon DownThemAll.
+            "copyq",  -- Includes session name in class.
+            "pinentry",
         },
         class = {
-          "Arandr",
-          "Blueman-manager",
-          "Gpick",
-          "Kruler",
-          "MessageWin",  -- kalarm.
-          "Sxiv",
-          "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
-          "Wpa_gui",
-          "veromix",
-          "xtightvncviewer"},
-
+            "Arandr",
+            "Blueman-manager",
+            "Gpick",
+            "Kruler",
+            "MessageWin",  -- kalarm.
+            "Sxiv",
+            "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
+            "Wpa_gui",
+            "veromix",
+            "xtightvncviewer"
+        },
         -- Note that the name property shown in xprop might be set slightly after creation of the client
         -- and the name shown there might not match defined rules here.
         name = {
-          "Event Tester",  -- xev.
+            "Event Tester",  -- xev.
         },
         role = {
-          "AlarmWindow",  -- Thunderbird's calendar.
-          "ConfigManager",  -- Thunderbird's about:config.
-          "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
+            "AlarmWindow",  -- Thunderbird's calendar.
+            "ConfigManager",  -- Thunderbird's about:config.
+            "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
         }
-      }, properties = { floating = true }},
+    }, 
+    properties = { 
+        floating = true 
+    }},
+
+    { rule_any = {
+        class = {
+            "yakuake"
+        }
+    }, 
+    properties = { 
+        border_width = 0 
+    }},
 }
 
 -- }}}
@@ -484,10 +440,10 @@ client.connect_signal("manage", function (c)
     -- if not awesome.startup then awful.client.setslave(c) end
 
     if awesome.startup
-      and not c.size_hints.user_position
-      and not c.size_hints.program_position then
-        -- Prevent clients from being unreachable after screen count changes.
-        awful.placement.no_offscreen(c)
+        and not c.size_hints.user_position
+        and not c.size_hints.program_position then
+            -- Prevent clients from being unreachable after screen count changes.
+            awful.placement.no_offscreen(c)
     end
 end)
 
