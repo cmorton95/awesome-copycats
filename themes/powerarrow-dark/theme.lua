@@ -88,10 +88,10 @@ theme.titlebar_maximized_button_focus_active    = theme.dir .. "/icons/titlebar/
 theme.titlebar_maximized_button_normal_active   = theme.dir .. "/icons/titlebar/maximized_normal_active.png"
 theme.titlebar_maximized_button_focus_inactive  = theme.dir .. "/icons/titlebar/maximized_focus_inactive.png"
 theme.titlebar_maximized_button_normal_inactive = theme.dir .. "/icons/titlebar/maximized_normal_inactive.png"
-theme.notification_width                        = dpi(400)
-theme.notification_max_width                    = dpi(400)
-theme.notification_height                       = dpi(145)
-theme.notification_max_height                   = dpi(145)
+theme.notification_width                        = dpi(450)
+theme.notification_max_width                    = dpi(450)
+theme.notification_height                       = dpi(140)
+theme.notification_max_height                   = dpi(140)
 
 
 theme.wallpaper = function(s)

@@ -112,6 +112,7 @@ awful.util.tasklist_buttons = mytable.join(
             c:raise()
          end
      end),
+     awful.button({ }, 2, function(c) c:kill() end),
      awful.button({ }, 3, function()
          awful.menu.client_list({ theme = { width = 250 } })
      end),
@@ -256,10 +257,6 @@ globalkeys = mytable.join(
     -- Widgets popups
     awful.key({ altkey, }, "c", function () if beautiful.cal then beautiful.cal.show(7) end end,
               {description = "show calendar", group = "widgets"}),
-    awful.key({ altkey, }, "h", function () if beautiful.fs then beautiful.fs.show(7) end end,
-              {description = "show filesystem", group = "widgets"}),
-    awful.key({ altkey, }, "w", function () if beautiful.weather then beautiful.weather.show(7) end end,
-              {description = "show weather", group = "widgets"}),
 
     -- MPD control
     awful.key({ altkey }, "space",
@@ -296,7 +293,7 @@ globalkeys = mytable.join(
     awful.key({ modkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
             {description = "run prompt", group = "launcher"}),
 
-    awful.key({ modkey }, "space", function () awful.spawn("rofi -show combi -show-icons") end,
+    awful.key({ modkey }, "space", function () awful.spawn("rofi -show drun -show-icons") end,
             {description = "rofi prompt", group = "launcher"}),
 
     awful.key({ modkey, "Shift" }, "s", function() awful.spawn("shutdown -P 0") end,
@@ -352,6 +349,10 @@ clientbuttons = mytable.join(
         awful.mouse.client.move(c)
     end),
     awful.button({ modkey }, 2, function (c)
+        c:emit_signal("request::activate", "mouse_click", {raise = true})
+        c.minimized = true
+    end),
+    awful.button({ modkey, "Control" }, 2, function (c)
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         c:kill()
     end),
