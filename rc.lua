@@ -21,7 +21,7 @@ local lain          = require("lain")
 local freedesktop   = require("freedesktop")
 local hotkeys_popup = require("awful.hotkeys_popup")
                       require("awful.hotkeys_popup.keys")
-local mytable       = awful.util.table or gears.table -- 4.{0,1} compatibility
+local mytable       = gears.table -- 4.{0,1} compatibility
 
 -- }}}
 
@@ -65,10 +65,11 @@ local altkey       = "Mod1"
 local terminal     = "yakuake"
 local vi_focus     = false -- vi-like client focus https://github.com/lcpz/awesome-copycats/issues/275
 local cycle_prev   = false  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
-local editor       = os.getenv("EDITOR") or "nvim"
+local editor       = "code"
 local browser      = "vivaldi-snapshot"
 local scrlocker    = "slock"
 local player       = "Deezer"
+local conffolder   = string.format("%s/.config/awesome", os.getenv("HOME"))
 
 awful.util.terminal = terminal
 awful.layout.layouts = {
@@ -105,7 +106,7 @@ awful.util.tasklist_buttons = mytable.join(
      awful.button({ }, 5, function() awful.client.focus.byidx(-1) end)
 )
 
-beautiful.init(string.format("%s/.config/awesome/theme/theme.lua", os.getenv("HOME")))
+beautiful.init(string.format("%s%s", conffolder, "/theme/theme.lua"))
 
 -- }}}
 
@@ -115,7 +116,7 @@ beautiful.init(string.format("%s/.config/awesome/theme/theme.lua", os.getenv("HO
 local myawesomemenu = {
    { "Hotkeys", function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
    { "Manual", string.format("%s -e man awesome", terminal) },
-   { "Edit config", string.format("%s -e %s %s", terminal, editor, awesome.conffile) },
+   { "Edit config", string.format("%s %s", editor, conffolder) },
    { "Restart", awesome.restart },
    { "Quit", function() awesome.quit() end },
 }
@@ -214,9 +215,6 @@ globalkeys = mytable.join(
     awful.key({ modkey }, "b", function ()
             for s in screen do
                 s.mywibox.visible = not s.mywibox.visible
-                if s.mybottomwibox then
-                    s.mybottomwibox.visible = not s.mybottomwibox.visible
-                end
             end
         end,
         {description = "toggle wibox", group = "awesome"}),
@@ -234,14 +232,10 @@ globalkeys = mytable.join(
               {description = "delete tag", group = "tag"}),
 
     -- Standard program
-    awful.key({ modkey, "Control" }, "r", awesome.restart,
+    awful.key({ modkey, "Control"   }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit,
+    awful.key({ modkey, "Control"   }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
-
-    -- Widgets popups
-    awful.key({ altkey, }, "c", function () if beautiful.cal then beautiful.cal.show(7) end end,
-              {description = "show calendar", group = "widgets"}),
 
     -- MPD control
     awful.key({ altkey }, "space",
@@ -261,12 +255,12 @@ globalkeys = mytable.join(
         {description = "player next", group = "custom"}),
     awful.key({ altkey }, "Up",
         function ()
-            awful.spawn("playerctl -p "..player.." volume 0.02+")
+            awful.spawn("playerctl -p "..player.." volume 0.05+")
         end,
         {description = "player vol up", group = "custom"}),
     awful.key({ altkey }, "Down",
         function ()
-            awful.spawn("playerctl -p "..player.." volume 0.02-")
+            awful.spawn("playerctl -p "..player.." volume 0.05-")
         end,
         {description = "player vol down", group = "custom"}),
 
@@ -275,10 +269,10 @@ globalkeys = mytable.join(
               {description = "run browser", group = "launcher"}),
 
     -- Prompt
-    awful.key({ modkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
+    awful.key({ modkey, altkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
             {description = "run prompt", group = "launcher"}),
 
-    awful.key({ modkey }, "space", function () awful.spawn("rofi -show drun -show-icons") end,
+    awful.key({ modkey }, "r", function () awful.spawn("rofi -show drun -show-icons") end,
             {description = "rofi prompt", group = "launcher"}),
 
     awful.key({ modkey, "Shift" }, "s", function() awful.spawn("shutdown -P 0") end,
@@ -371,7 +365,7 @@ awful.rules.rules = {
         buttons = clientbuttons,
         screen = awful.screen.preferred,
         placement = awful.placement.no_overlap+awful.placement.no_offscreen,
-        size_hints_honor = true
+        size_hints_honor = false
     }},
 
     -- Floating clients.

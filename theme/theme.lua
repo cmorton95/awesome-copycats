@@ -182,7 +182,6 @@ local create_tags = function(s)
             layout = awful.layout.suit.tile.bottom,
             master_count = 0,
             selected = true
-
         })
     else
         awful.tag.add("Desktop", {
