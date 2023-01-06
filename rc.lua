@@ -246,27 +246,27 @@ globalkeys = mytable.join(
     -- MPD control
     awful.key({ altkey }, "space",
         function ()
-            os.execute("playerctl -p "..player.." play-pause")
+            awful.spawn("playerctl -p "..player.." play-pause")
         end,
         {description = "player play pause", group = "custom"}),
     awful.key({ altkey }, "Left",
         function ()
-            os.execute("playerctl -p "..player.." previous")
+            awful.spawn("playerctl -p "..player.." previous")
         end,
         {description = "player previous", group = "custom"}),
     awful.key({ altkey }, "Right",
         function ()
-            os.execute("playerctl -p "..player.." next")
+            awful.spawn("playerctl -p "..player.." next")
         end,
         {description = "player next", group = "custom"}),
     awful.key({ altkey }, "Up",
         function ()
-            os.execute("playerctl -p "..player.." volume 0.02+")
+            awful.spawn("playerctl -p "..player.." volume 0.02+")
         end,
         {description = "player vol up", group = "custom"}),
     awful.key({ altkey }, "Down",
         function ()
-            os.execute("playerctl -p "..player.." volume 0.02-")
+            awful.spawn("playerctl -p "..player.." volume 0.02-")
         end,
         {description = "player vol down", group = "custom"}),
 
@@ -334,6 +334,9 @@ clientbuttons = mytable.join(
         awful.mouse.client.move(c)
     end),
     awful.button({ modkey }, 2, function (c)
+        -- frick you primary selection eat doo doo and commit dead
+        -- os.execute so this definitely goes off before doing anything else
+        os.execute('echo -n "" | xclip -i -selection primary')
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         c.minimized = true
     end),
