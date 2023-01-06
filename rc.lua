@@ -18,7 +18,6 @@ local wibox         = require("wibox")
 local beautiful     = require("beautiful")
 local naughty       = require("naughty")
 local lain          = require("lain")
---local menubar       = require("menubar")
 local freedesktop   = require("freedesktop")
 local hotkeys_popup = require("awful.hotkeys_popup")
                       require("awful.hotkeys_popup.keys")
@@ -61,20 +60,6 @@ end
 
 -- {{{ Variable definitions
 
-local themes = {
-    "blackburn",       -- 1
-    "copland",         -- 2
-    "dremora",         -- 3
-    "holo",            -- 4
-    "multicolor",      -- 5
-    "powerarrow",      -- 6
-    "powerarrow-dark", -- 7
-    "rainbow",         -- 8
-    "steamburn",       -- 9
-    "vertex"           -- 10
-}
-
-local chosen_theme = themes[7]
 local modkey       = "Mod4"
 local altkey       = "Mod1"
 local terminal     = "yakuake"
@@ -83,9 +68,9 @@ local cycle_prev   = false  -- cycle with only the previously focused client or 
 local editor       = os.getenv("EDITOR") or "nvim"
 local browser      = "vivaldi-snapshot"
 local scrlocker    = "slock"
+local player       = "Deezer"
 
 awful.util.terminal = terminal
-awful.util.tagnames = { "1" }
 awful.layout.layouts = {
     awful.layout.suit.tile,
     awful.layout.suit.tile.bottom
@@ -120,7 +105,7 @@ awful.util.tasklist_buttons = mytable.join(
      awful.button({ }, 5, function() awful.client.focus.byidx(-1) end)
 )
 
-beautiful.init(string.format("%s/.config/awesome/themes/%s/theme.lua", os.getenv("HOME"), chosen_theme))
+beautiful.init(string.format("%s/.config/awesome/theme/theme.lua", os.getenv("HOME")))
 
 -- }}}
 
@@ -261,27 +246,27 @@ globalkeys = mytable.join(
     -- MPD control
     awful.key({ altkey }, "space",
         function ()
-            os.execute("playerctl -p Deezer play-pause")
+            os.execute("playerctl -p "..player.." play-pause")
         end,
         {description = "player play pause", group = "custom"}),
     awful.key({ altkey }, "Left",
         function ()
-            os.execute("playerctl -p Deezer previous")
+            os.execute("playerctl -p "..player.." previous")
         end,
         {description = "player previous", group = "custom"}),
     awful.key({ altkey }, "Right",
         function ()
-            os.execute("playerctl -p Deezer next")
+            os.execute("playerctl -p "..player.." next")
         end,
         {description = "player next", group = "custom"}),
     awful.key({ altkey }, "Up",
         function ()
-            os.execute("playerctl -p Deezer volume 0.02+")
+            os.execute("playerctl -p "..player.." volume 0.02+")
         end,
         {description = "player vol up", group = "custom"}),
     awful.key({ altkey }, "Down",
         function ()
-            os.execute("playerctl -p Deezer volume 0.02-")
+            os.execute("playerctl -p "..player.." volume 0.02-")
         end,
         {description = "player vol down", group = "custom"}),
 
@@ -302,7 +287,7 @@ globalkeys = mytable.join(
     awful.key({ modkey, "Shift" }, "r", function() awful.spawn("shutdown -r 0") end,
             {description = "reboot"}),
 
-    awful.key({"Control", "Shift"}, "4", function() awful.spawn("spectacle -bcr") end,
+    awful.key({"Control", "Shift"}, "4", function() awful.spawn("flameshot gui --clipboard --accept-on-select") end,
             {description = "spectacle region capture", group = "custom"})
 )
 
