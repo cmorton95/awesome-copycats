@@ -234,8 +234,18 @@ globalkeys = mytable.join(
     -- Standard program
     awful.key({ modkey, "Control"   }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
+
     awful.key({ modkey, "Control"   }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
+
+    awful.key({ modkey, "Shift" }, "s", function() awful.spawn("shutdown -P 0") end,
+              {description = "shutdown", group = "awesome"}),
+
+    awful.key({ modkey, "Shift" }, "r", function() awful.spawn("shutdown -r 0") end,
+              {description = "reboot", group = "awesome"}),
+
+    awful.key({ modkey, "Shift" }, "c", function() awful.spawn("/etc/ricing/picom.sh") end,
+              {description = "picom", group = "awesome"}),
 
     -- MPD control
     awful.key({ altkey }, "space",
@@ -275,12 +285,6 @@ globalkeys = mytable.join(
     awful.key({ modkey }, "r", function () awful.spawn("rofi -show drun -show-icons") end,
             {description = "rofi prompt", group = "launcher"}),
 
-    awful.key({ modkey, "Shift" }, "s", function() awful.spawn("shutdown -P 0") end,
-            {description = "shutdown"}),
-
-    awful.key({ modkey, "Shift" }, "r", function() awful.spawn("shutdown -r 0") end,
-            {description = "reboot"}),
-
     awful.key({"Control", "Shift"}, "4", function() awful.spawn("flameshot gui --clipboard --accept-on-select") end,
             {description = "spectacle region capture", group = "custom"})
 )
@@ -319,6 +323,12 @@ clientkeys = mytable.join(
         {description = "(un)maximize", group = "client"})
 )
 
+local killps = function()
+    -- frick you primary selection eat doo doo and commit dead
+    -- os.execute so this definitely goes off before doing anything else
+    os.execute('echo -n "" | xclip -i -selection primary')
+end
+
 clientbuttons = mytable.join(
     awful.button({ }, 1, function (c)
         c:emit_signal("request::activate", "mouse_click", {raise = true})
@@ -328,13 +338,12 @@ clientbuttons = mytable.join(
         awful.mouse.client.move(c)
     end),
     awful.button({ modkey }, 2, function (c)
-        -- frick you primary selection eat doo doo and commit dead
-        -- os.execute so this definitely goes off before doing anything else
-        os.execute('echo -n "" | xclip -i -selection primary')
+        killps()
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         c.minimized = true
     end),
     awful.button({ modkey, "Control" }, 2, function (c)
+        killps()
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         c:kill()
     end),
