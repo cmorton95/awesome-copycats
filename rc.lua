@@ -66,7 +66,7 @@ local terminal     = "yakuake"
 local vi_focus     = false -- vi-like client focus https://github.com/lcpz/awesome-copycats/issues/275
 local cycle_prev   = false  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
 local editor       = "code"
-local browser      = "vivaldi-snapshot"
+local browser      = "vivaldi"
 local scrlocker    = "slock"
 local player       = "Deezer"
 local conffolder   = string.format("%s/.config/awesome", os.getenv("HOME"))
@@ -347,6 +347,12 @@ clientbuttons = mytable.join(
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         c:kill()
     end),
+    awful.button({ modkey, "Control", "Shift" }, 2, function (c)
+        killps()
+        if c.pid then
+            awful.spawn("kill -9 " .. c.pid)
+        end
+    end),
     awful.button({ modkey }, 3, function (c)
         c:emit_signal("request::activate", "mouse_click", {raise = true})
         awful.mouse.client.resize(c)
@@ -426,7 +432,7 @@ awful.rules.rules = {
 -- {{{ Signals
 
 -- Signal function to execute when a new client appears.
-client.connect_signal("manage", function (c)
+client.connect_signal("request::manage", function (c)
     -- Set the windows at the slave,
     -- i.e. put it at the end of others instead of setting it master.
     -- if not awesome.startup then awful.client.setslave(c) end
@@ -437,53 +443,13 @@ client.connect_signal("manage", function (c)
             -- Prevent clients from being unreachable after screen count changes.
             awful.placement.no_offscreen(c)
     end
-end)
 
--- Add a titlebar if titlebars_enabled is set to true in the rules.
-client.connect_signal("request::titlebars", function(c)
-    -- Custom
-    if beautiful.titlebar_fun then
-        beautiful.titlebar_fun(c)
-        return
-    end
-
-    -- Default
-    -- buttons for the titlebar
-    local buttons = mytable.join(
-        awful.button({ }, 1, function()
-            c:emit_signal("request::activate", "titlebar", {raise = true})
-            awful.mouse.client.move(c)
-        end),
-        awful.button({ }, 3, function()
-            c:emit_signal("request::activate", "titlebar", {raise = true})
-            awful.mouse.client.resize(c)
-        end)
-    )
-
-    if not c.requests_no_titlebar then
-        awful.titlebar(c, { size = 24 }) : setup {
-            { -- Left
-                awful.titlebar.widget.iconwidget(c),
-                buttons = buttons,
-                layout  = wibox.layout.fixed.horizontal
-            },
-            { -- Middle
-                { -- Title
-                    align  = "center",
-                    widget = awful.titlebar.widget.titlewidget(c)
-                },
-                buttons = buttons,
-                layout  = wibox.layout.flex.horizontal
-            },
-            { -- Right
-                awful.titlebar.widget.floatingbutton (c),
-                awful.titlebar.widget.minimizebutton (c),
-                awful.titlebar.widget.maximizedbutton(c),
-                awful.titlebar.widget.closebutton    (c),
-                layout = wibox.layout.fixed.horizontal()
-            },
-            layout = wibox.layout.align.horizontal
-        }
+    -- Center dialogs over parent
+    if c.transient_for then
+        awful.placement.centered(c, {
+            parent = c.transient_for
+        })
+        awful.placement.no_offscreen(c)
     end
 end)
 

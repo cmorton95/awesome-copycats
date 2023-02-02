@@ -107,6 +107,14 @@ end
 local markup = lain.util.markup
 local separators = lain.util.separators
 
+function escapeMarkup(s) 
+    s = s:gsub("&", "&amp;")
+    s = s:gsub("<", "&lt;")
+    s = s:gsub(">", "&gt;")
+    s = s:gsub("'", "&#39;")
+    return s
+end
+
 -- Textclock
 local clockicon = wibox.widget.imagebox(theme.widget_clock)
 local clock = awful.widget.watch(
@@ -162,7 +170,7 @@ local client_callback = function(se, c, index, objects) --luacheck: no unused
         text = string.sub(c.class, 1, index-1)
     end
 
-    text = text:gsub("^%l", string.upper) .. " (" .. c.name .. ")"
+    text = text:gsub("^%l", string.upper) .. " (" .. escapeMarkup(c.name) .. ")"
 
     if c == client.focus then
         text = markup(theme.fg_focus, text)
