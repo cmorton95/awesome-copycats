@@ -162,7 +162,10 @@ end
 local client_callback = function(se, c, index, objects) --luacheck: no unused
 
     local textbox = se:get_children_by_id('textfield')[1]
-
+    if c.class == nil then
+        textbox:set_markup_silently(c.name)
+        return 
+    end
     local index = string.find(c.class, "-[^-]*$")
     
     local text = c.class

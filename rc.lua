@@ -274,7 +274,7 @@ globalkeys = mytable.join(
         end,
         {description = "player vol down", group = "custom"}),
 
-    -- User programs
+    -- User programs    
     awful.key({ modkey }, "q", function () awful.spawn(browser) end,
               {description = "run browser", group = "launcher"}),
 
